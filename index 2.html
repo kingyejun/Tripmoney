@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3B3BF0">
+<title>같이모아 · 친구와 저축 챌린지</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDEFFF; --card:#fff; --ink:#16163A; --muted:#6B6D96; --line:#D3D6F4;
+  --blue:#3B3BF0; --blue-d:#2A2AC7; --coin:#FFC83D; --green:#18A86B; --danger:#D6334A;
+  --display:'Jua','Noto Sans KR',system-ui,sans-serif;
+  --body:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0F1030; --card:#1A1B4B; --ink:#EDEEFF; --muted:#9A9CCB; --line:#2F3270; --blue:#5B5BFF; --blue-d:#7C7CFF; --green:#35D08F; --danger:#FF6B81; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#app{max-width:520px;margin:0 auto;padding:16px 16px 72px}
+h1,h2{font-family:var(--display);font-weight:400;margin:0}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--coin);outline-offset:2px}
+a{color:inherit;text-decoration:none}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;margin:4px 0 20px}
+.logo{font-family:var(--display);font-size:28px;flex:1;letter-spacing:-.5px}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--coin);border:0;font-size:24px;display:grid;place-items:center}
+.back{font-size:15px;color:var(--muted);padding:8px 4px;border:0;background:none}
+.top .title{flex:1;min-width:0}
+.top .title h1{font-size:24px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .title p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+
+/* buttons / forms */
+.btn{border:0;border-radius:999px;padding:12px 20px;font-weight:700;background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.btn.primary{background:var(--blue);color:#fff;box-shadow:none}
+.btn.primary:active{background:var(--blue-d)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:8px 14px;font-size:14px}
+.actions{display:flex;gap:10px;margin-top:16px}
+.actions .btn{flex:1}
+label{display:block;font-weight:700;font-size:14px;margin:16px 0 6px}
+input[type=text],input[type=number],input[type=date]{width:100%;padding:13px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card)}
+input:focus{border-color:var(--blue);outline:none}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0}
+
+/* home list */
+.ch{display:block;background:var(--card);border-radius:22px;padding:16px;margin-bottom:12px}
+.ch-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ch-top strong{font-size:17px}
+.tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--bg)}
+.tag.end{color:var(--muted)}
+.bar{height:10px;background:var(--line);border-radius:99px;margin:14px 0 8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:99px}
+.ch-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:32px 12px;line-height:1.7}
+
+/* race track */
+.row{background:var(--card);border-radius:22px;padding:14px 16px 12px;margin-bottom:10px;border-left:6px solid transparent}
+.row.me{border-left-color:var(--blue)}
+.who{display:flex;align-items:center;gap:8px}
+.rank{width:24px;height:24px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me-tag,.done{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;flex:none}
+.me-tag{background:var(--blue);color:#fff}
+.done{background:var(--green);color:#fff}
+.amt{margin-left:auto;font-weight:700;white-space:nowrap}
+.amt small{font-weight:400;color:var(--muted);margin-left:2px}
+.lane{position:relative;height:34px;margin:10px 28px 4px 0}
+.lane::before{content:"";position:absolute;left:0;right:0;top:50%;height:10px;transform:translateY(-50%);background:var(--line);border-radius:99px}
+.fill{position:absolute;left:0;top:50%;height:10px;transform:translateY(-50%);border-radius:99px;background:var(--blue);width:calc(17px + (100% - 34px) * var(--p));transition:width .5s}
+.coin{position:absolute;top:0;width:34px;height:34px;border-radius:50%;background:var(--coin);display:grid;place-items:center;font-size:19px;left:calc((100% - 34px) * var(--p));box-shadow:0 0 0 3px var(--card);transition:left .5s}
+.flag{position:absolute;right:-28px;top:50%;transform:translateY(-50%);font-size:20px}
+.cheer{display:flex;gap:6px;margin-top:8px}
+.cheer button{border:0;background:var(--bg);border-radius:99px;padding:4px 12px;font-size:16px}
+.cheer button:active{transform:scale(.92)}
+
+/* record form */
+.panel{background:var(--card);border-radius:22px;padding:16px;margin:18px 0}
+.panel h2{font-size:20px;margin-bottom:4px}
+.chips{display:flex;gap:8px;margin:10px 0}
+.chips button{border:0;background:var(--bg);border-radius:99px;padding:6px 14px;font-weight:700;font-size:14px}
+.two{display:flex;gap:8px}
+.two input:first-child{flex:0 0 40%}
+
+/* feed */
+h2.sec{font-size:20px;margin:24px 2px 10px}
+.feed-item{display:flex;gap:10px;align-items:flex-start;padding:10px 4px;border-bottom:1px solid var(--line);font-size:14px}
+.feed-item .ic{font-size:20px;line-height:1.3}
+.feed-item .tx{flex:1;min-width:0}
+.feed-item .tm{color:var(--muted);font-size:12px}
+.feed-item button{border:0;background:none;color:var(--muted);font-size:12px;text-decoration:underline;padding:4px}
+
+/* dialog / toast */
+dialog{border:0;border-radius:24px;padding:22px;width:min(92vw,400px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(10,10,40,.55)}
+#emojiGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px}
+#emojiGrid button{aspect-ratio:1;border-radius:50%;border:3px solid transparent;background:var(--bg);font-size:24px}
+#emojiGrid button[aria-pressed=true]{border-color:var(--blue);background:var(--coin)}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;z-index:10}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.setup{background:var(--card);border-radius:22px;padding:20px;line-height:1.7}
+.setup code{background:var(--bg);padding:2px 6px;border-radius:6px}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div id="app"><p class="empty">연결 중…</p></div>
+
+<dialog id="profileDlg">
+  <form id="profileForm">
+    <h2 style="font-size:24px">내 프로필</h2>
+    <label for="nick">닉네임</label>
+    <input type="text" id="nick" maxlength="10" required autocomplete="off" placeholder="친구들에게 보일 이름">
+    <label>캐릭터</label>
+    <div id="emojiGrid"></div>
+    <div class="actions"><button class="btn primary" type="submit">저장하기</button></div>
+  </form>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const won = n => Number(n || 0).toLocaleString('ko-KR') + '원';
+const EMOJIS = ['🐶','🐱','🐰','🐻','🦊','🐼','🐸','🐧','🦁','🐯','🐷','🐥'];
+const CHEERS = ['🔥','👏','💪','🎉'];
+
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function fmtDate(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function dayDiff(end){
+  const [y,m,d] = end.split('-').map(Number);
+  const t = new Date(); const t0 = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  return Math.round((new Date(y, m-1, d) - t0) / 86400000);
+}
+function dLabel(end){ const n = dayDiff(end); return n < 0 ? '종료' : n === 0 ? '오늘 마감' : 'D-' + n; }
+function tsMs(ts){ return ts && ts.toMillis ? ts.toMillis() : Date.now(); }
+function ago(ms){
+  const s = Math.max(0, (Date.now() - ms) / 1000);
+  if (s < 60) return '방금';
+  if (s < 3600) return Math.floor(s/60) + '분 전';
+  if (s < 86400) return Math.floor(s/3600) + '시간 전';
+  return Math.floor(s/86400) + '일 전';
+}
+function genCode(){
+  const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const r = new Uint32Array(6); crypto.getRandomValues(r);
+  return Array.from(r, n => a[n % a.length]).join('');
+}
+function friendlyError(e){
+  if (e && e.code === 'permission-denied') return '권한 오류예요. Firestore 규칙을 확인해 주세요.';
+  return (e && e.message) || '문제가 생겼어요. 다시 시도해 주세요.';
+}
+function store(key, val){
+  try { if (val === undefined) return JSON.parse(localStorage.getItem(key)); localStorage.setItem(key, JSON.stringify(val)); } catch (e) { return null; }
+}
+
+/* ---------- firebase ---------- */
+if (!window.firebaseConfig || String(firebaseConfig.apiKey).startsWith('YOUR_')) {
+  app.innerHTML = `<div class="setup"><h1 style="font-size:24px;margin-bottom:8px">Firebase 설정이 필요해요</h1>
+    <p><code>firebase-config.js</code> 파일에 Firebase 웹 앱 설정값을 붙여넣어 주세요. 자세한 순서는 README.md에 있어요.</p></div>`;
+  throw new Error('firebase-config.js not configured');
+}
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
+
+let uid = null, profile = null, unsubs = [], booted = false;
+const clearSubs = () => { unsubs.forEach(f => f()); unsubs = []; };
+
+auth.onAuthStateChanged(u => { if (u) { uid = u.uid; if (!booted) { booted = true; boot(); } } });
+auth.signInAnonymously().catch(e => {
+  app.innerHTML = `<div class="setup"><h1 style="font-size:24px;margin-bottom:8px">로그인에 실패했어요</h1>
+    <p>Firebase 콘솔 &gt; Authentication에서 <b>익명</b> 로그인을 켰는지 확인해 주세요.</p><p class="hint">${esc(e.message)}</p></div>`;
+});
+
+/* ---------- profile ---------- */
+function openProfile(first){
+  const dlg = $('#profileDlg'); const grid = $('#emojiGrid');
+  let pick = (profile && profile.emoji) || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+  $('#nick').value = (profile && profile.nickname) || '';
+  const paint = () => { grid.innerHTML = EMOJIS.map(e => `<button type="button" data-emoji="${e}" aria-pressed="${e === pick}">${e}</button>`).join(''); };
+  paint();
+  grid.onclick = e => { const b = e.target.closest('[data-emoji]'); if (b) { pick = b.dataset.emoji; paint(); } };
+  dlg.oncancel = e => { if (first) e.preventDefault(); };
+  $('#profileForm').onsubmit = async e => {
+    e.preventDefault();
+    const nickname = $('#nick').value.trim(); if (!nickname) return;
+    profile = { nickname, emoji: pick }; store('sc_profile', profile);
+    dlg.close();
+    try { // 이미 참여 중인 챌린지의 표시 정보도 갱신
+      const snap = await db.collection('challenges').where('memberIds', 'array-contains', uid).get();
+      const b = db.batch();
+      snap.docs.forEach(d => b.set(d.ref.collection('members').doc(uid), profile, { merge: true }));
+      await b.commit();
+    } catch (err) { /* 무시: 다음 참여부터 반영됨 */ }
+    route();
+  };
+  dlg.showModal();
+  $('#nick').focus();
+}
+
+/* ---------- router ---------- */
+function boot(){
+  profile = store('sc_profile');
+  if (!profile) { route(); openProfile(true); } else route();
+}
+function route(){
+  clearSubs();
+  const h = location.hash || '#/'; let m;
+  if ((m = h.match(/^#\/c\/(.+)$/))) return showChallenge(m[1]);
+  if ((m = h.match(/^#\/join\/?(.*)$/))) return showJoin(decodeURIComponent(m[1]));
+  if (h === '#/new') return showCreate();
+  showHome();
+}
+window.addEventListener('hashchange', route);
+
+/* ---------- home ---------- */
+function showHome(){
+  const av = profile ? profile.emoji : '🙂';
+  app.innerHTML = `
+    <header class="top"><div class="logo">같이모아</div>
+      <button class="avatar" data-act="profile" aria-label="프로필 수정">${av}</button></header>
+    <div id="list"><p class="empty">불러오는 중…</p></div>
+    <div class="actions"><a class="btn primary" href="#/new" style="text-align:center">새 챌린지 만들기</a>
+      <a class="btn" href="#/join" style="text-align:center">코드로 참여</a></div>`;
+  unsubs.push(db.collection('challenges').where('memberIds', 'array-contains', uid).onSnapshot(async snap => {
+    const list = $('#list'); if (!list) return;
+    if (snap.empty) { list.innerHTML = '<p class="empty">아직 참여 중인 챌린지가 없어요.<br>새로 만들거나 친구의 초대 코드를 입력해 보세요.</p>'; return; }
+    const items = await Promise.all(snap.docs.map(async d => {
+      const me = await d.ref.collection('members').doc(uid).get();
+      const cnt = (d.data().memberIds || []).length;
+      return { id: d.id, ...d.data(), saved: me.exists ? (me.data().saved || 0) : 0, cnt };
+    }));
+    items.sort((a, b) => (dayDiff(a.endDate) < 0) - (dayDiff(b.endDate) < 0) || a.endDate.localeCompare(b.endDate));
+    if (!$('#list')) return;
+    $('#list').innerHTML = items.map(c => {
+      const pct = Math.round(c.saved / c.goalAmount * 100); const ended = dayDiff(c.endDate) < 0;
+      return `<a class="ch" href="#/c/${c.id}">
+        <div class="ch-top"><strong>${esc(c.name)}</strong><span class="tag${ended ? ' end' : ''}">${dLabel(c.endDate)}</span></div>
+        <div class="bar"><i style="width:${Math.min(100, pct)}%"></i></div>
+        <div class="ch-meta"><span>내 진행 ${pct}% · ${won(c.saved)} / ${won(c.goalAmount)}</span><span>${c.cnt}명</span></div></a>`;
+    }).join('');
+  }, e => { const l = $('#list'); if (l) l.innerHTML = `<p class="empty">${esc(friendlyError(e))}</p>`; }));
+}
+
+/* ---------- create ---------- */
+function showCreate(){
+  const end = new Date(); end.setDate(end.getDate() + 30);
+  app.innerHTML = `
+    <header class="top"><button class="back" data-act="home">‹ 목록</button><div class="title"><h1>새 챌린지</h1></div></header>
+    <form id="createForm">
+      <label for="cname">챌린지 이름</label>
+      <input type="text" id="cname" maxlength="20" required placeholder="예: 커피값 아껴서 여행 가자">
+      <label for="cgoal">한 사람당 목표 금액 (원)</label>
+      <input type="number" id="cgoal" min="1000" step="1" inputmode="numeric" required placeholder="100000">
+      <label for="cend">마감일</label>
+      <input type="date" id="cend" min="${fmtDate(new Date())}" value="${fmtDate(end)}" required>
+      <p class="hint">만든 뒤에 초대 코드가 생겨요. 친구에게 보내면 바로 참여할 수 있어요.</p>
+      <div class="actions"><button class="btn primary" type="submit" id="createBtn">챌린지 만들기</button></div>
+    </form>`;
+  $('#createForm').onsubmit = async e => {
+    e.preventDefault(); const btn = $('#createBtn'); btn.disabled = true;
+    try {
+      const name = $('#cname').value.trim(), goal = parseInt($('#cgoal').value, 10), endDate = $('#cend').value;
+      if (!name || !(goal > 0)) throw new Error('이름과 목표 금액을 확인해 주세요.');
+      let code;
+      for (let i = 0; i < 5; i++) {
+        code = genCode();
+        const q = await db.collection('challenges').where('code', '==', code).limit(1).get();
+        if (q.empty) break;
+      }
+      const ref = db.collection('challenges').doc(); const b = db.batch();
+      b.set(ref, { name, goalAmount: goal, endDate, code, ownerId: uid, memberIds: [uid], createdAt: FV.serverTimestamp() });
+      b.set(ref.collection('members').doc(uid), { ...profile, saved: 0, joinedAt: FV.serverTimestamp() });
+      await b.commit();
+      location.hash = '#/c/' + ref.id;
+    } catch (err) { toast(friendlyError(err)); btn.disabled = false; }
+  };
+}
+
+/* ---------- join ---------- */
+function showJoin(prefill){
+  app.innerHTML = `
+    <header class="top"><button class="back" data-act="home">‹ 목록</button><div class="title"><h1>코드로 참여</h1></div></header>
+    <form id="joinForm">
+      <label for="code">초대 코드 6자리</label>
+      <input type="text" id="code" maxlength="6" autocapitalize="characters" autocomplete="off" required value="${esc(prefill)}" placeholder="ABC123">
+      <div class="actions"><button class="btn primary" type="submit" id="joinBtn">참여하기</button></div>
+    </form>`;
+  $('#joinForm').onsubmit = async e => {
+    e.preventDefault(); const btn = $('#joinBtn'); btn.disabled = true;
+    try {
+      const code = $('#code').value.trim().toUpperCase();
+      const q = await db.collection('challenges').where('code', '==', code).limit(1).get();
+      if (q.empty) throw new Error('코드를 찾을 수 없어요. 다시 확인해 주세요.');
+      const doc = q.docs[0];
+      if (!(doc.data().memberIds || []).includes(uid)) {
+        if (dayDiff(doc.data().endDate) < 0) throw new Error('이미 끝난 챌린지예요.');
+        const b = db.batch();
+        b.update(doc.ref, { memberIds: FV.arrayUnion(uid) });
+        b.set(doc.ref.collection('members').doc(uid), { ...profile, saved: 0, joinedAt: FV.serverTimestamp() });
+        await b.commit();
+        toast('참여했어요!');
+      }
+      location.hash = '#/c/' + doc.id;
+    } catch (err) { toast(friendlyError(err)); btn.disabled = false; }
+  };
+}
+
+/* ---------- challenge detail ---------- */
+let ch = null, members = [], records = [], cheers = [], chId = null;
+
+function showChallenge(id){
+  chId = id; ch = null; members = []; records = []; cheers = [];
+  app.innerHTML = `
+    <header class="top"><button class="back" data-act="home">‹ 목록</button>
+      <div class="title"><h1 id="cname">…</h1><p id="csub"></p></div>
+      <button class="btn sm" data-act="share">초대</button></header>
+    <section id="track" aria-label="참여자 현황"></section>
+    <section class="panel" id="recPanel">
+      <h2>오늘 모은 돈</h2>
+      <form id="recForm">
+        <div class="chips" aria-label="빠른 입력">
+          <button type="button" data-add="1000">+1,000</button><button type="button" data-add="5000">+5,000</button><button type="button" data-add="10000">+10,000</button>
+        </div>
+        <div class="two">
+          <input type="number" id="ramt" min="1" step="1" inputmode="numeric" placeholder="금액" required aria-label="금액">
+          <input type="text" id="rmemo" maxlength="30" placeholder="메모 (선택)" aria-label="메모">
+        </div>
+        <div class="actions"><button class="btn primary" type="submit" id="recBtn">저금 기록하기</button></div>
+      </form>
+    </section>
+    <h2 class="sec">활동</h2><div id="feed"></div>`;
+
+  const ref = db.collection('challenges').doc(id);
+  const onErr = e => toast(friendlyError(e));
+  unsubs.push(ref.onSnapshot(s => {
+    if (!s.exists) { toast('챌린지를 찾을 수 없어요.'); location.hash = '#/'; return; }
+    ch = s.data();
+    if (!(ch.memberIds || []).includes(uid)) { location.hash = '#/join/' + ch.code; return; }
+    renderHead(); renderTrack();
+  }, onErr));
+  unsubs.push(ref.collection('members').onSnapshot(s => {
+    members = s.docs.map(d => ({ uid: d.id, ...d.data() })); renderTrack(); renderFeed();
+  }, onErr));
+  unsubs.push(ref.collection('records').orderBy('createdAt', 'desc').limit(30).onSnapshot(s => {
+    records = s.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) })); renderFeed();
+  }, onErr));
+  unsubs.push(ref.collection('cheers').orderBy('createdAt', 'desc').limit(30).onSnapshot(s => {
+    cheers = s.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) })); renderFeed();
+  }, onErr));
+
+  $('#recForm').onsubmit = async e => {
+    e.preventDefault(); const btn = $('#recBtn');
+    const amount = parseInt($('#ramt').value, 10); const memo = $('#rmemo').value.trim();
+    if (!(amount > 0)) return;
+    btn.disabled = true;
+    try {
+      const before = (members.find(m => m.uid === uid) || {}).saved || 0;
+      const b = db.batch();
+      b.set(ref.collection('records').doc(), { uid, nickname: profile.nickname, emoji: profile.emoji, amount, memo, createdAt: FV.serverTimestamp() });
+      b.set(ref.collection('members').doc(uid), { saved: FV.increment(amount) }, { merge: true });
+      await b.commit();
+      $('#ramt').value = ''; $('#rmemo').value = '';
+      toast(before < ch.goalAmount && before + amount >= ch.goalAmount ? '목표 달성! 🎉' : '기록했어요 +' + won(amount));
+    } catch (err) { toast(friendlyError(err)); }
+    btn.disabled = false;
+  };
+}
+
+function renderHead(){
+  if (!ch || !$('#cname')) return;
+  $('#cname').textContent = ch.name;
+  $('#csub').textContent = `${dLabel(ch.endDate)} · 목표 ${won(ch.goalAmount)} · 코드 ${ch.code}`;
+  const ended = dayDiff(ch.endDate) < 0;
+  $('#recBtn').disabled = ended;
+  $('#recBtn').textContent = ended ? '종료된 챌린지예요' : '저금 기록하기';
+}
+
+function renderTrack(){
+  const box = $('#track'); if (!box || !ch) return;
+  const list = [...members].sort((a, b) => (b.saved || 0) - (a.saved || 0));
+  if (!list.length) { box.innerHTML = '<p class="empty">참여자를 불러오는 중…</p>'; return; }
+  box.innerHTML = list.map((m, i) => {
+    const saved = m.saved || 0; const ratio = saved / ch.goalAmount;
+    const p = Math.max(0, Math.min(1, ratio)); const pct = Math.round(ratio * 100); const mine = m.uid === uid;
+    return `<article class="row${mine ? ' me' : ''}">
+      <div class="who"><span class="rank">${i + 1}</span><b>${esc(m.nickname)}</b>${mine ? '<span class="me-tag">나</span>' : ''}${pct >= 100 ? '<span class="done">달성</span>' : ''}
+        <span class="amt">${won(saved)} <small>${pct}%</small></span></div>
+      <div class="lane" style="--p:${p}"><i class="fill"></i><span class="coin">${esc(m.emoji)}</span><span class="flag">🏁</span></div>
+      ${mine ? '' : `<div class="cheer">${CHEERS.map(e => `<button data-act="cheer" data-to="${m.uid}" data-name="${esc(m.nickname)}" data-emoji="${e}" aria-label="${esc(m.nickname)}님에게 ${e} 응원">${e}</button>`).join('')}</div>`}
+    </article>`;
+  }).join('');
+}
+
+function renderFeed(){
+  const box = $('#feed'); if (!box) return;
+  const items = [
+    ...records.map(r => ({ t: 'r', time: tsMs(r.createdAt), ...r })),
+    ...cheers.map(c => ({ t: 'c', time: tsMs(c.createdAt), ...c }))
+  ].sort((a, b) => b.time - a.time).slice(0, 30);
+  if (!items.length) { box.innerHTML = '<p class="empty">아직 활동이 없어요.<br>첫 저금을 기록해 보세요!</p>'; return; }
+  box.innerHTML = items.map(it => {
+    if (it.t === 'r') {
+      const mine = it.uid === uid;
+      return `<div class="feed-item"><span class="ic">${esc(it.emoji)}</span><div class="tx"><b>${esc(it.nickname)}</b>님이 ${won(it.amount)} 모았어요${it.memo ? ' · ' + esc(it.memo) : ''}<div class="tm">${ago(it.time)}</div></div>${mine ? `<button data-act="undo" data-id="${it.id}" data-amt="${it.amount}">취소</button>` : ''}</div>`;
+    }
+    return `<div class="feed-item"><span class="ic">${esc(it.emoji)}</span><div class="tx"><b>${esc(it.fromName)}</b>님이 <b>${esc(it.toName)}</b>님을 응원했어요<div class="tm">${ago(it.time)}</div></div></div>`;
+  }).join('');
+}
+
+/* ---------- global click handling ---------- */
+document.addEventListener('click', async e => {
+  const add = e.target.closest('[data-add]');
+  if (add) { const i = $('#ramt'); i.value = (parseInt(i.value, 10) || 0) + parseInt(add.dataset.add, 10); i.focus(); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  try {
+    if (act === 'home') { location.hash = '#/'; }
+    else if (act === 'profile') { openProfile(false); }
+    else if (act === 'share') {
+      const url = location.origin + location.pathname + '#/join/' + ch.code;
+      const text = `"${ch.name}" 저축 챌린지에 같이 하자! 초대 코드: ${ch.code}`;
+      if (navigator.share) { try { await navigator.share({ title: '같이모아', text, url }); } catch (_) {} }
+      else { await navigator.clipboard.writeText(text + '\n' + url); toast('초대 링크를 복사했어요'); }
+    }
+    else if (act === 'cheer') {
+      await db.collection('challenges').doc(chId).collection('cheers').add({
+        fromUid: uid, fromName: profile.nickname, toUid: b.dataset.to, toName: b.dataset.name,
+        emoji: b.dataset.emoji, createdAt: FV.serverTimestamp()
+      });
+      toast(b.dataset.emoji + ' 응원을 보냈어요');
+    }
+    else if (act === 'undo') {
+      if (!confirm('이 기록을 취소할까요?')) return;
+      const ref = db.collection('challenges').doc(chId); const batch = db.batch();
+      batch.delete(ref.collection('records').doc(b.dataset.id));
+      batch.set(ref.collection('members').doc(uid), { saved: FV.increment(-parseInt(b.dataset.amt, 10)) }, { merge: true });
+      await batch.commit(); toast('취소했어요');
+    }
+  } catch (err) { toast(friendlyError(err)); }
+});
+</script>
+</body>
+</html>

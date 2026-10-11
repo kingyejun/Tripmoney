@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /challenges/{cid} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.memberIds == [request.auth.uid];
+
+      // 방장은 수정 가능, 그 외 사람은 "자기 자신을 참여자에 추가"하는 것만 가능
+      allow update: if request.auth != null && (
+        resource.data.ownerId == request.auth.uid
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+          && request.resource.data.memberIds.toSet()
+               .difference(resource.data.memberIds.toSet())
+               .hasOnly([request.auth.uid])
+        )
+      );
+
+      allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+
+      match /members/{uid} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /records/{rid} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+        allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      }
+
+      match /cheers/{id} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
+      }
+    }
+  }
+}
